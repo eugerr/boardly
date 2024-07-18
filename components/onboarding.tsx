@@ -3,10 +3,11 @@
  * @see https://v0.dev/t/Mp96xtQLfu7
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import { SignInButton } from '@clerk/nextjs'
+import { ClerkLoaded, ClerkLoading, SignInButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Button } from './ui/button'
 import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
 
 export default function Onboarding() {
   return (
@@ -25,9 +26,14 @@ export default function Onboarding() {
           alt='Onboarding'
           className='mx-auto '
         />
-        <Button>
-          <SignInButton />
-        </Button>
+        <ClerkLoading>
+          <Loader2 className='animate-spin size-7' />
+        </ClerkLoading>
+        <ClerkLoaded>
+          <Button>
+            <SignInButton>Get started</SignInButton>
+          </Button>
+        </ClerkLoaded>
       </main>
     </div>
   )
