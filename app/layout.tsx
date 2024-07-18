@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Button } from '@/components/ui/button'
+import Onboarding from '@/components/onboarding'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,9 +23,7 @@ export default function RootLayout({
       <html lang='en'>
         <body className={inter.className}>
           <SignedOut>
-            <Button>
-              <SignInButton />
-            </Button>
+            <Onboarding />
           </SignedOut>
           <SignedIn>
             {children}
