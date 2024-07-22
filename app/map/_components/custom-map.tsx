@@ -1,12 +1,35 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import useGeolocation from '@/hooks/useGeolocation'
+import { Tables } from '@/types/supabase'
 
-export function MapboxMap() {
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
+import { Button, buttonVariants } from '@/components/ui/button'
+import Image from 'next/image'
+import Link from 'next/link'
+
+interface MapboxMapProps {
+  data: Tables<'listing'>[]
+}
+
+export function MapboxMap({ data }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<Tables<'listing'> | null>(
+    null
+  )
 
   useEffect(() => {
     mapboxgl.accessToken =
@@ -23,7 +46,7 @@ export function MapboxMap() {
 
       // Add controls
       map.addControl(new mapboxgl.NavigationControl(), 'top-left')
-      // map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right')
+      // map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
       map.addControl(
         new mapboxgl.GeolocateControl({
           positionOptions: {
@@ -35,19 +58,21 @@ export function MapboxMap() {
         'top-right'
       )
 
-      // Add your custom markers and lines here
-      map.on('click', (e) => {
-        alert(`A click event has occurred at ${e.lngLat}`)
-      })
+      data.map((item: Tables<'listing'>) => {
+        const marker = new mapboxgl.Marker()
+          .setLngLat([Number(item.longitude), Number(item.latitude)])
+          .addTo(map)
 
-      new mapboxgl.Marker()
-        .setLngLat([123.15111472299711, 11.46029403493869])
-        .addTo(map)
+        marker.getElement().addEventListener('click', () => {
+          setSelectedItem(item)
+          setDrawerOpen(true)
+        })
+      })
 
       // Clean up on unmount
       return () => map.remove()
     }
-  }, [])
+  }, [data])
 
   const { location, error, permissionStatus } = useGeolocation()
 
@@ -63,6 +88,49 @@ export function MapboxMap() {
           />
         ))}
       <div ref={mapContainer} className='h-full w-full' />
+
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <DrawerTrigger>Open</DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className='mb-5 text-2xl font-semibold'>
+              {selectedItem?.name || 'Details'}
+            </DrawerTitle>
+            <DrawerDescription>
+              {selectedItem ? (
+                <>
+                  <div className='relative h-[40vh] min-h-[200px] w-full overflow-hidden'>
+                    <Image
+                      src={selectedItem.image_url!}
+                      alt='Boarding House'
+                      width={1600}
+                      height={900}
+                      className='h-full w-full object-cover object-center'
+                    />
+                  </div>
+                  <p className='mt-5 text-lg font-semibold'>
+                    $ {selectedItem.rent} per month
+                  </p>
+                </>
+              ) : (
+                <p>No item selected.</p>
+              )}
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <Link
+              href={`/listing/${selectedItem?.id}`}
+              className={buttonVariants()}
+            >
+              More Info
+            </Link>
+
+            <Button variant='secondary' onClick={() => setDrawerOpen(false)}>
+              Close
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   )
 }

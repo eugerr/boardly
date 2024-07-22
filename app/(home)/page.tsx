@@ -1,8 +1,18 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
+import { Tables } from '@/types/supabase'
 
-export default function Component() {
+export default async function Component() {
+  const cookieStore = cookies()
+  const supabase = createClient(cookieStore)
+
+  const { data: listing } = await supabase.from('listing').select()
+
+  console.log(listing)
+
   return (
     <div className='flex flex-col min-h-dvh'>
       <main className='flex-1'>
@@ -30,12 +40,15 @@ export default function Component() {
             <h2 className='text-2xl font-bold md:text-3xl'>
               Explore Our Boarding Houses
             </h2>
-            <div className='mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-              <Card />
-              <Card />
-              <Card />
-              <Card />
-            </div>
+            {listing ? (
+              <div className='mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+                {listing.map((house) => (
+                  <Card {...house} key={house.id} />
+                ))}
+              </div>
+            ) : (
+              <p>No listing found</p>
+            )}
           </div>
         </section>
       </main>
@@ -43,12 +56,30 @@ export default function Component() {
   )
 }
 
-function Card() {
+function Card({
+  address,
+  created_at,
+  description,
+  id,
+  image_url,
+  latitude,
+  longitude,
+  name,
+  owner_contact,
+  owner_name,
+  rent,
+  rooms,
+  user_id,
+}: Tables<'listing'>) {
+  console.log(image_url)
   return (
-    <div className='rounded-lg border bg-white shadow-sm'>
+    <Link
+      href={`/listing/${id}`}
+      className='rounded-lg border bg-white shadow-sm'
+    >
       <div className='relative aspect-video'>
         <Image
-          src='/placeholder.svg'
+          src={image_url!}
           alt='Boarding House'
           fill
           className='h-48 w-full rounded-t-lg object-cover'
@@ -66,6 +97,6 @@ function Card() {
           </Button>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

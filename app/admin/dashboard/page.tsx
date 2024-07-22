@@ -28,7 +28,7 @@ export default async function AdminDashboard(params: {
 
       {users.map((user) => {
         return (
-          <div key={user.id} className='border p-5 my-20'>
+          <div key={user.id} className='border p-5 my-20 '>
             <div>
               {user.firstName} {user.lastName}
             </div>
